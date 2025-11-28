@@ -26,10 +26,6 @@ const Controls = ({ isStreaming, onStart, onStop }) => (
           <Zap className="w-6 h-6" />
           <span>Dừng</span>
         </button>
-        <button className="flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-2xl font-semibold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all active:scale-[0.98]">
-          <RefreshCw className="w-6 h-6" />
-          <span>Chụp lại</span>
-        </button>
       </>
     )}
   </div>
