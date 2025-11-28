@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 28
+names: ['bao_bi_thuc_pham', 'cao_su', 'carton', 'chai_nhua', 'chai_nhua_pet', 'chai_thuy_tinh', 'dep', 'giay', 'giay_goi', 'goi_nhua_nho', 'hop_nhua', 'khau_trang', 'kim_loai', 'la_cay', 'ly_hop_giay', 'nhom', 'nhua', 'ong_hut_nhua', 'rac_huu_co', 'thuc_an_thua', 'thuy_tinh', 'tui_ni_long', 'vai_vun', 'vo_hop_sua', 'vo_rau_cu', 'vo_trai_cay', 'vo_trung', 'xop']
+
+roboflow:
+  workspace: quan-qyydw
+  project: multitrash-orq2g
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/quan-qyydw/multitrash-orq2g/dataset/1
