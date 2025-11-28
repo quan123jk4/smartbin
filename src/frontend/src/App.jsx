@@ -96,32 +96,6 @@ function App() {
 
   const sendFrameToServer = async (blob) => {
     if (!blob) return;
-
-    // --- MOCK DATA ĐỂ TEST ---
-    if (Math.random() > 0.95) {
-      const mockItems = Object.keys(wasteInfo);
-      const randomItem =
-        mockItems[Math.floor(Math.random() * mockItems.length)];
-      const mockData = [
-        {
-          name: randomItem,
-          confidence: 0.85 + Math.random() * 0.1,
-          box: [50, 50, 200, 200],
-        },
-      ];
-
-      setDisplayDetections(mockData);
-      setShowGuide(true); // Hiện panel khi có rác
-
-      if (clearDetectionTimeoutRef.current)
-        clearTimeout(clearDetectionTimeoutRef.current);
-      clearDetectionTimeoutRef.current = setTimeout(() => {
-        setDisplayDetections([]);
-      }, DETECTION_TTL);
-      return;
-    }
-    // -------------------------
-
     const formData = new FormData();
     formData.append("file", blob, "frame.jpg");
 
@@ -132,6 +106,9 @@ function App() {
         {
           method: "POST",
           body: formData,
+          headers: {
+            "ngrok-skip-browser-warning": "69420", // <--- THÊM DÒNG NÀY: Đây là "vé ưu tiên" để đi qua cổng Ngrok
+          },
         }
       );
       if (res.ok) {
