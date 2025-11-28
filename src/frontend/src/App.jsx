@@ -4,6 +4,15 @@ import CameraDisplay from "./CameraDisplay";
 import Controls from "./Control";
 import StatsBoard from "./StatsBoard";
 import { wasteInfo } from "./wasteData";
+import {
+  Camera,
+  RefreshCw,
+  Trash2,
+  Zap,
+  AlertCircle,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);

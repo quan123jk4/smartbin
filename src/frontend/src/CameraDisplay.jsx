@@ -6,6 +6,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Video as VideoIcon,
+  X,
 } from "lucide-react";
 const CameraDisplay = ({ videoRef, canvasRef, isStreaming, error }) => {
   return (

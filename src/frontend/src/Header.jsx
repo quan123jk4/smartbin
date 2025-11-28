@@ -8,6 +8,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Video,
+  X,
 } from "lucide-react";
 const Header = ({ isStreaming, isDarkMode, toggleDarkMode }) => (
   <header className="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b dark:border-slate-800 p-4 sticky top-0 z-40 transition-colors duration-300">

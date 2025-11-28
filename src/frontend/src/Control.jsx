@@ -5,6 +5,7 @@ import {
   Zap,
   AlertCircle,
   CheckCircle2,
+  X,
 } from "lucide-react";
 const Controls = ({ isStreaming, onStart, onStop }) => (
   <div className="grid grid-cols-2 gap-3 w-full">

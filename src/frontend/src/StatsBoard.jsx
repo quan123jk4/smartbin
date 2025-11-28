@@ -5,6 +5,7 @@ import {
   Zap,
   AlertCircle,
   CheckCircle2,
+  X,
 } from "lucide-react";
 const StatsBoard = ({ detections, isStreaming, fps }) => (
   <div className="w-full bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
