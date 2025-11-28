@@ -10,7 +10,7 @@ import {
   Video,
 } from "lucide-react";
 const Header = ({ isStreaming, isDarkMode, toggleDarkMode }) => (
-  <header className="w-full bg-white dark:bg-slate-800 shadow-sm border-b dark:border-slate-700 p-4 sticky top-0 z-50 transition-colors duration-300">
+  <header className="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b dark:border-slate-800 p-4 sticky top-0 z-40 transition-colors duration-300">
     <div className="max-w-md mx-auto flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full">
@@ -22,8 +22,7 @@ const Header = ({ isStreaming, isDarkMode, toggleDarkMode }) => (
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Trạng thái Live */}
-        <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full transition-colors">
+        <div className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
           {isStreaming ? (
             <>
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -37,10 +36,9 @@ const Header = ({ isStreaming, isDarkMode, toggleDarkMode }) => (
           )}
         </div>
 
-        {/* Nút Toggle Dark Mode */}
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
+          className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 transition-all active:scale-95"
         >
           {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -48,4 +46,5 @@ const Header = ({ isStreaming, isDarkMode, toggleDarkMode }) => (
     </div>
   </header>
 );
+
 export default Header;

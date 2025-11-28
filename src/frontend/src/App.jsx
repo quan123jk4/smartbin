@@ -11,18 +11,26 @@ function App() {
   const [displayDetections, setDisplayDetections] = useState([]);
   const [fps, setFps] = useState(0);
   const [error, setError] = useState(null);
-
-  // State cho Dark Mode
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showGuide, setShowGuide] = useState(false); // State hiển thị Panel
 
-  // Xử lý Dark Mode Effect
+  const lastFrameTime = useRef(Date.now());
+  const clearDetectionTimeoutRef = useRef(null);
+  const DETECTION_TTL = 2000;
+
+  const CLASS_COLORS = {
+    mac_dinh: "#22c55e",
+    recycle: "#2ecc71",
+    organic: "#f1c40f",
+    hazard: "#e74c3c",
+    other: "#95a5a6",
+  };
+
   useEffect(() => {
-    // Kiểm tra localStorage hoặc system preference
     const savedMode = localStorage.getItem("theme");
     const systemPrefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
-
     if (savedMode === "dark" || (!savedMode && systemPrefersDark)) {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
@@ -46,24 +54,12 @@ function App() {
     });
   };
 
-  const lastFrameTime = useRef(Date.now());
-  const clearDetectionTimeoutRef = useRef(null);
-  const DETECTION_TTL = 2000;
-
-  const CLASS_COLORS = {
-    mac_dinh: "#22c55e",
-    recycle: "#2ecc71",
-    organic: "#f1c40f",
-    hazard: "#e74c3c",
-    other: "#95a5a6",
-  };
-
   const handleStartCamera = async () => {
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment",
+          facingMode: "environment", // Camera sau
           width: { ideal: 640 },
           height: { ideal: 480 },
         },
@@ -85,29 +81,29 @@ function App() {
       videoRef.current.srcObject = null;
       setIsStreaming(false);
       setDisplayDetections([]);
+      setShowGuide(false);
     }
   };
 
-  // Giả lập gửi frame lên server (Mocking API call)
   const sendFrameToServer = async (blob) => {
     if (!blob) return;
 
-    // --- MOCK DETECTIONS (Xóa phần này khi kết nối API thật) ---
-    // Vì không có backend thật, tôi giả lập detection ngẫu nhiên để bạn test UI
+    // --- MOCK DATA ĐỂ TEST ---
     if (Math.random() > 0.95) {
       const mockItems = Object.keys(wasteInfo);
       const randomItem =
         mockItems[Math.floor(Math.random() * mockItems.length)];
-
       const mockData = [
         {
           name: randomItem,
           confidence: 0.85 + Math.random() * 0.1,
-          box: [50, 50, 200, 200], // x1, y1, x2, y2 giả định
+          box: [50, 50, 200, 200],
         },
       ];
 
       setDisplayDetections(mockData);
+      setShowGuide(true); // Hiện panel khi có rác
+
       if (clearDetectionTimeoutRef.current)
         clearTimeout(clearDetectionTimeoutRef.current);
       clearDetectionTimeoutRef.current = setTimeout(() => {
@@ -115,42 +111,32 @@ function App() {
       }, DETECTION_TTL);
       return;
     }
-    // -----------------------------------------------------------
+    // -------------------------
 
     const formData = new FormData();
     formData.append("file", blob, "frame.jpg");
 
     try {
-      // Thay URL này bằng địa chỉ API Backend của bạn
-      const res = await fetch("http://127.0.0.1:8000/detect/", {
+      // Thay URL backend thật của bạn vào đây
+      const res = await fetch("https://smartbin-api.onrender.com/detect/", {
         method: "POST",
         body: formData,
       });
       if (res.ok) {
         const raw = await res.json();
         let data = [];
-
         try {
-          if (typeof raw === "string") {
-            const parsed = JSON.parse(raw);
-            data = typeof parsed === "string" ? JSON.parse(parsed) : parsed;
-          } else {
-            data = raw;
-          }
-        } catch (e) {
-          console.log("Lỗi parse JSON:", e);
-        }
+          data = typeof raw === "string" ? JSON.parse(raw) : raw;
+        } catch (e) {}
 
-        if (!Array.isArray(data)) {
-          data = data && data.box ? [data] : [];
-        }
+        if (!Array.isArray(data)) data = data && data.box ? [data] : [];
 
         if (data.length > 0) {
           setDisplayDetections(data);
+          setShowGuide(true);
 
           if (clearDetectionTimeoutRef.current)
             clearTimeout(clearDetectionTimeoutRef.current);
-
           clearDetectionTimeoutRef.current = setTimeout(() => {
             setDisplayDetections([]);
           }, DETECTION_TTL);
@@ -173,14 +159,7 @@ function App() {
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
     tempCanvas.getContext("2d").drawImage(video, 0, 0);
-
-    tempCanvas.toBlob(
-      (blob) => {
-        sendFrameToServer(blob);
-      },
-      "image/jpeg",
-      0.6
-    );
+    tempCanvas.toBlob((blob) => sendFrameToServer(blob), "image/jpeg", 0.6);
   };
 
   useEffect(() => {
@@ -189,22 +168,19 @@ function App() {
     return () => clearInterval(interval);
   }, [isStreaming]);
 
-  // Vẽ bounding box lên canvas
+  // VẼ BOUNDING BOX LÊN CANVAS
   useEffect(() => {
     if (!canvasRef.current || !videoRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // SỬA LỖI: Đặt kích thước canvas khớp video nếu cần
     if (video.readyState === 4 && video.videoWidth > 0) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
     }
 
-    // SỬA LỖI: Chỉ xóa canvas (để video nền tự chạy) và vẽ lại box
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // KHÔNG gọi ctx.drawImage(video...) ở đây nữa để tránh lag
 
     displayDetections.forEach((det) => {
       if (!det.box) return;
@@ -221,38 +197,52 @@ function App() {
 
       const width = x2 - x1;
       const height = y2 - y1;
-
       const info = wasteInfo[det.name];
       const color = info ? CLASS_COLORS[info.type] : CLASS_COLORS.mac_dinh;
 
-      // Vẽ Box
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = color;
+      // Vẽ Box phong cách hiện đại (Chỉ vẽ 4 góc)
       ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-      ctx.strokeRect(x1, y1, width, height);
-      ctx.shadowBlur = 0;
+      ctx.lineWidth = 3;
+      const cornerLen = 20;
+      ctx.beginPath();
+      // Top Left
+      ctx.moveTo(x1, y1 + cornerLen);
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x1 + cornerLen, y1);
+      // Top Right
+      ctx.moveTo(x2 - cornerLen, y1);
+      ctx.lineTo(x2, y1);
+      ctx.lineTo(x2, y1 + cornerLen);
+      // Bottom Right
+      ctx.moveTo(x2, y2 - cornerLen);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x2 - cornerLen, y2);
+      // Bottom Left
+      ctx.moveTo(x1 + cornerLen, y2);
+      ctx.lineTo(x1, y2);
+      ctx.lineTo(x1, y2 - cornerLen);
+      ctx.stroke();
 
       // Vẽ Label
-      ctx.fillStyle = color;
-      ctx.font = 'bold 18px "Segoe UI", sans-serif';
       const labelText = info ? info.name : det.name;
-      const label = `${labelText} ${(det.confidence * 100).toFixed(0)}%`;
+      const confidence = (det.confidence * 100).toFixed(0) + "%";
 
+      ctx.font = "bold 16px sans-serif";
+      const textWidth = ctx.measureText(labelText).width;
+
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.roundRect(
-        x1,
-        y1 - 30,
-        ctx.measureText(label).width + 12,
-        30,
-        [5, 5, 0, 0]
-      );
+      ctx.roundRect(x1, y1 - 35, textWidth + 60, 30, 8);
       ctx.fill();
 
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(label, x1 + 6, y1 - 8);
+      ctx.fillText(labelText, x1 + 10, y1 - 14);
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(confidence, x1 + textWidth + 20, y1 - 14);
     });
-  }, [displayDetections, isStreaming]); // Thêm dependency
+  }, [displayDetections, isStreaming]);
 
   const getUniqueDetections = () => {
     if (!displayDetections || displayDetections.length === 0) return [];
@@ -264,7 +254,7 @@ function App() {
     <div
       className={`min-h-screen font-sans flex flex-col items-center transition-colors duration-300 ${
         isDarkMode
-          ? "bg-slate-900 text-slate-100"
+          ? "bg-slate-950 text-slate-100"
           : "bg-slate-50 text-slate-800"
       }`}
     >
@@ -274,7 +264,7 @@ function App() {
         toggleDarkMode={toggleDarkMode}
       />
 
-      <main className="flex-1 w-full max-w-md p-4 flex flex-col gap-4 relative z-10">
+      <main className="flex-1 w-full max-w-md p-5 pb-32 flex flex-col gap-6 relative z-10 mx-auto">
         <CameraDisplay
           videoRef={videoRef}
           canvasRef={canvasRef}
@@ -295,42 +285,64 @@ function App() {
         />
       </main>
 
-      {/* --- Panel Hướng dẫn Xử lý Rác (Sidebar bên phải) --- */}
-      {displayDetections.length > 0 && (
-        <div className="fixed top-0 right-0 h-full w-80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-5 shadow-[-5px_0_20px_rgba(0,0,0,0.1)] dark:shadow-none overflow-y-auto transition-transform duration-300 ease-in-out z-40 border-l border-slate-200 dark:border-slate-700 mt-[73px]">
-          <div className="mt-2">
-            <div className="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-700 pb-2">
-              <span className="text-2xl">💡</span>
-              <h3 className="font-bold text-lg text-slate-800 dark:text-white">
-                Hướng Dẫn Xử Lý
-              </h3>
+      {/* --- MOBILE BOTTOM SHEET / DESKTOP SIDEBAR --- */}
+      {displayDetections.length > 0 && showGuide && (
+        <div
+          className="
+            fixed z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_-5px_30px_rgba(0,0,0,0.15)] dark:shadow-none transition-all duration-300 ease-out
+            
+            /* Mobile: Trượt từ dưới lên */
+            bottom-0 left-0 w-full max-h-[60vh] rounded-t-[30px] border-t border-slate-200 dark:border-slate-700 flex flex-col
+            animate-in slide-in-from-bottom duration-300
+            
+            /* Desktop: Sidebar bên phải */
+            md:top-0 md:right-0 md:h-full md:w-80 md:max-h-full md:rounded-none md:border-l md:border-t-0 md:pt-[72px] md:animate-in md:slide-in-from-right
+        "
+        >
+          {/* Handle bar cho mobile */}
+          <div className="w-full flex justify-center pt-3 pb-1 md:hidden">
+            <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+          </div>
+
+          <div className="p-5 overflow-y-auto flex-1">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl animate-bounce">💡</span>
+                <h3 className="font-bold text-lg text-slate-800 dark:text-white">
+                  Phát hiện rác!
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {getUniqueDetections().map((label) => {
                 const info = wasteInfo[label];
-
                 if (!info) return null;
 
-                // Logic màu sắc cho Card (Dark mode compatible)
                 let cardStyle =
-                  "bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600";
+                  "bg-gray-50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700";
                 let badgeColor = "bg-gray-500";
                 let icon = "🗑️";
 
                 if (info.type === "recycle") {
                   cardStyle =
-                    "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800";
+                    "bg-green-50/80 dark:bg-green-900/10 border-green-200 dark:border-green-800/50";
                   badgeColor = "bg-green-600";
                   icon = "♻️";
                 } else if (info.type === "organic") {
                   cardStyle =
-                    "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800";
+                    "bg-yellow-50/80 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800/50";
                   badgeColor = "bg-yellow-600";
                   icon = "🍂";
                 } else if (info.type === "hazard") {
                   cardStyle =
-                    "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
+                    "bg-red-50/80 dark:bg-red-900/10 border-red-200 dark:border-red-800/50";
                   badgeColor = "bg-red-600";
                   icon = "☣️";
                 }
@@ -338,12 +350,12 @@ function App() {
                 return (
                   <div
                     key={label}
-                    className={`p-4 rounded-xl border shadow-sm ${cardStyle} transition-all hover:scale-105`}
+                    className={`p-4 rounded-2xl border shadow-sm ${cardStyle} transition-all`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">{icon}</span>
-                        <span className="font-bold text-md text-slate-800 dark:text-slate-200">
+                        <span className="text-2xl">{icon}</span>
+                        <span className="font-bold text-base text-slate-800 dark:text-slate-100">
                           {info.name}
                         </span>
                       </div>
@@ -353,7 +365,7 @@ function App() {
                         {info.type}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       {info.guide}
                     </p>
                   </div>

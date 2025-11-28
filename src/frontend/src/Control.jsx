@@ -7,23 +7,29 @@ import {
   CheckCircle2,
 } from "lucide-react";
 const Controls = ({ isStreaming, onStart, onStop }) => (
-  <div className="flex justify-center gap-4">
+  <div className="grid grid-cols-2 gap-3 w-full">
     {!isStreaming ? (
       <button
         onClick={onStart}
-        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg shadow-green-200 transition-all active:scale-95"
+        className="col-span-2 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg shadow-green-200 dark:shadow-green-900/20 transition-all active:scale-[0.98]"
       >
-        <Camera className="w-5 h-5" />
-        Bắt đầu Quét
+        <Camera className="w-6 h-6" />
+        Bắt đầu
       </button>
     ) : (
-      <button
-        onClick={onStop}
-        className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-semibold shadow-lg shadow-red-200 transition-all active:scale-95"
-      >
-        <Zap className="w-5 h-5 fill-current" />
-        Dừng lại
-      </button>
+      <>
+        <button
+          onClick={onStop}
+          className="flex flex-col items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-2xl font-semibold shadow-lg shadow-red-200 dark:shadow-red-900/20 transition-all active:scale-[0.98]"
+        >
+          <Zap className="w-6 h-6" />
+          <span>Dừng</span>
+        </button>
+        <button className="flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-2xl font-semibold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all active:scale-[0.98]">
+          <RefreshCw className="w-6 h-6" />
+          <span>Chụp lại</span>
+        </button>
+      </>
     )}
   </div>
 );
