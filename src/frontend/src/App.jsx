@@ -21,7 +21,7 @@ function App() {
   const [fps, setFps] = useState(0);
   const [error, setError] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showGuide, setShowGuide] = useState(false); // State hiển thị Panel
+  const [showGuide, setShowGuide] = useState(false);
 
   const lastFrameTime = useRef(Date.now());
   const clearDetectionTimeoutRef = useRef(null);
@@ -127,7 +127,7 @@ function App() {
 
     try {
       // Thay URL backend thật của bạn vào đây
-      const res = await fetch("https://smartbin-1-nqfn.onrender.com/detect/", {
+      const res = await fetch("https://smartbin-14iz.onrender.com/detect/", {
         method: "POST",
         body: formData,
       });
