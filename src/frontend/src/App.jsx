@@ -118,7 +118,7 @@ function App() {
 
     try {
       // Thay URL backend thật của bạn vào đây
-      const res = await fetch("https://smartbin-api.onrender.com/detect/", {
+      const res = await fetch("https://smartbin-1-nqfn.onrender.com/detect/", {
         method: "POST",
         body: formData,
       });
