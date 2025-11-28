@@ -21,7 +21,7 @@ const Controls = ({ isStreaming, onStart, onStop }) => (
       <>
         <button
           onClick={onStop}
-          className="flex flex-col items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-2xl font-semibold shadow-lg shadow-red-200 dark:shadow-red-900/20 transition-all active:scale-[0.98]"
+          className="col-span-2 flex flex-col items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg shadow-red-200 dark:shadow-red-900/20 transition-all active:scale-[0.98]"
         >
           <Zap className="w-6 h-6" />
           <span>Dừng</span>
