@@ -127,10 +127,13 @@ function App() {
 
     try {
       // Thay URL backend thật của bạn vào đây
-      const res = await fetch("https://smartbin-14iz.onrender.com/detect/", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "https://marian-phototopographical-nobly.ngrok-free.dev/detect/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       if (res.ok) {
         const raw = await res.json();
         let data = [];
